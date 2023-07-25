@@ -1,0 +1,462 @@
+﻿@model ArticleToCreate
+<style>
+    i.fa {
+  display: inline-block;
+  border-radius: 40px;
+  box-shadow: 0 0 2px #888;
+  padding: 0.5em 0.6em;
+
+}
+</style>
+
+<form id="create_new_article" asp-action="CreateNewArticle" asp-route-updatemode=false method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="All"></div>
+<div class="ArticleDetails">
+    <div class="col-md-4">
+        <label asp-for="ArticleTitle">Article Title</label>
+        <input type="text" class="form-control mb-3" asp-for="ArticleTitle" placeholder="Enter the title">
+        <span asp-validation-for="ArticleTitle" class=" alert-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <input type="hidden" id="the_article_content" class="form-control mb-3" asp-for="ArticleContent">
+        <input type="hidden" id="the_article_id" class="form-control mb-3" asp-for="ArticleId">
+    </div>
+    <div class="col-md-4">
+        <select class="form-control" asp-for="ArticleCategory">
+            <option value=0>Select</option>
+            <option value=1>Mobiles</option>
+            <option value=2>PCs</option>
+        </select>
+    </div>
+</div>
+<div class="col-xs-12">&nbsp;</div>
+<div class="col-xs-6">
+    <label asp-for="ArticleThumbNail">Thumbnail</label>
+<input type="file" id="the_article_thumbnail" class="form-control" asp-for="ArticleThumbNail" />
+</div>
+<div class="col-xs-12">&nbsp;</div>
+<table class="table-bordered" width="100%">
+    <thead>
+        <tr>
+            <th>Element type</th>
+            <th>Content</th>
+            <th>Image</th>
+            <th>Image height</th>
+            <th>Image width</th>
+            <th>Alignment</th>
+            <th>Font size</th>
+            <th>Font family</th>
+            <th>Font weight</th>
+            <th>Font color</th>
+            <th>Action</th>
+        </tr>
+        <tr>
+            <td>
+                <select class="form-control" id="elementType">
+                    <option value="text">Text</option>
+                    <option value="image">Image</option>
+                    <option value="commands">Commands</option>
+                </select>
+            </td>
+            <td>
+                <textarea class="form-control" id="textContent"></textarea>
+            </td>
+            <td align="center">
+                <input type="file" class="image" accept="image/*" id="image"/><br />
+                <div id="uploadedImageName"></div><br />
+                <div id="uploadedImage"></div>
+                <div id="uploadedImageType" style="display:none;"></div>
+            </td>
+            <td>
+                <input type="text" class="form-control" id="imageHeight"/>
+            </td>
+            <td>
+                <input type="text" class="form-control" id="imageWidth"/>
+            </td>
+            <td>
+                <select class="form-control" id="alignment">
+                    <option value="left">Left</option>
+                    <option value="right">Right</option>
+                    <option value="center">Center</option>
+                </select>
+            </td>
+            <td>
+                <select class="form-control" id="fontSize">
+                    <option value="8px">8</option>
+                    <option value="9px">9</option>
+                    <option value="10px">10</option>
+                    <option value="11px">11</option>
+                    <option value="12px">12</option>
+                    <option value="13px">13</option>
+                    <option value="14px">14</option>
+                    <option value="25px">25</option>
+                </select>
+            </td>
+            <td>
+                
+                <select class="form-control" id="fontFamily">
+                    <option value='Arial'>Arial</option>
+                    <option value='Calibri'>Calibri</option>
+                    <option value='Times New Roman'>Times New Roman</option>
+                    <option value='Sans-serif'>Sans-serif</option>
+                </select>
+            </td>
+            <td>
+                <select class="form-control" id="fontWeight">
+                    <option value=300>300</option>
+                    <option value=400>400</option>
+                    <option value=500>500</option>
+                    <option value=600>600</option>
+                    <option value=700>700</option>
+                    <option value=800>800</option>
+                    <option value=900>900</option>
+                </select>
+            </td>
+            <td>
+                <select class="form-control" id="fontColor">
+                    <option value='black'>Black</option>
+                    <option value='red'>Red</option>
+                    <option value='green'>Green</option>
+                    <option value='blue'>Blue</option>
+                </select>
+            </td>
+            <td>
+                <input type="button" value="Save" onclick="addContent()" />
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+</table>
+<div class="col-xs-12">&nbsp;</div>
+
+<table class="table-bordered" id="ArticleContentTable" width="100%">
+     <thead>
+        <tr>
+            <th>Sl No.</th>
+            <th>Element type</th>
+            <th>Content</th>
+            <th>Image</th>
+            <th>Image height</th>
+            <th>Image width</th>
+            <th>Alignment</th>
+            <th>Font size</th>
+            <th>Font family</th>
+            <th>Font weight</th>
+            <th>Font color</th>
+            <th>Action</th>
+        </tr>
+     </thead>
+     <tbody>
+
+     </tbody>
+</table>
+
+<div class="col-xs-12">&nbsp;</div>
+
+<button type="submit" class="btn btn-lg btn-primary p-2"><i class="bi bi-file-plus-fill"></i>Save Article</button>
+
+</form>
+
+
+
+
+    @section Scripts{
+    @{
+    <partial name="_ValidationScriptsPartial" />
+    <partial name="_ViewImports" />
+    <partial name="_ViewStart" />
+    }
+    <script>
+
+var content_in_json = [];
+var image_element = document.querySelector(".image");
+var uploaded_image = "";
+var uploaded_image_name = "";
+var uploaded_image_type = "";
+var row_index = 0;
+
+ $(document).ready(function() 
+ {
+     var articleid = document.getElementById("the_article_id");
+     if (articleid.value == null || articleid.value == "") {
+         articleid.value = 0;
+     }
+     console.log("articleid", articleid);
+     var content_in_db = document.getElementById("the_article_content").value;
+     console.log("contentindb", content_in_db);
+     if (content_in_db != "" || content_in_db != null || content_in_db.length > 0) 
+     {
+         content_in_json = JSON.parse(content_in_db);
+
+         content_in_json.forEach(function(obj) 
+         {
+             if (obj.element_type == "image") 
+             {
+                 var img = new Image;
+                 obj.image_name = obj.image_base64;
+                 img.src = "../../images/" + obj.image_base64;
+                 img.onload = function() 
+                 {
+                     var canvas = document.createElement("canvas");
+                     canvas.width = img.width;
+                     canvas.height = img.height;
+                     var ctx = canvas.getContext("2d");
+                     ctx.drawImage(img, 0, 0);
+                     var dataURL = canvas.toDataURL("image/jpg");
+                     obj.image_base64 = dataURL;
+                     addContentInTable(obj);
+                 }
+             }
+             else
+             {
+                 addContentInTable(obj);
+             }
+         });
+         $("#create_new_article").attr("action", "/CreateArticles/CreateNewArticle?updatemode=true");
+     }
+     else
+     {
+         $("#create_new_article").attr("action", "/CreateArticles/CreateNewArticle?updatemode=false");
+     }
+});
+
+image_element.addEventListener("change", () => {
+    const file = image_element.files[0];
+    console.log(file, "the_file");
+    var the_image = `<img src="${URL.createObjectURL(file)}" alt="image" height="50" width="50" />`;
+    var the_image_src = document.getElementById("uploadedImage");
+    the_image_src.innerHTML = the_image;
+    document.getElementById("uploadedImageName").innerHTML = "";
+    document.getElementById("uploadedImageType").innerHTML = file.type.substring(6);
+
+    getBase64(file);
+});
+
+function getBase64(file) {
+    var reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function () {
+        console.log(reader, "the_reader");
+        uploaded_image = reader.result;
+        uploaded_image_name = file.name;
+        uploaded_image_type = file.type.substring(6);
+    };
+    reader.onerror = function (error) {
+        console.log('Error: ', error);
+    };
+}
+
+function addContent()
+{
+    var new_content = true;
+
+    if (row_index > 0) {
+        new_content = false;
+    }
+
+    if (new_content) 
+    {
+
+
+    if (content_in_json.length == 0) {
+        var content_id = 1;            
+    }
+    else{
+        var content_id = content_in_json.length + 1;
+    }
+
+
+    var the_content = {
+        "content_id" : content_id,
+        "element_type" : document.getElementById("elementType").value,
+        "text_content" : document.getElementById("textContent").value,
+        "image_name": uploaded_image_name,
+        "image_type": uploaded_image_type,
+        "image_base64": uploaded_image,
+        "image_height" : document.getElementById("imageHeight").value,
+        "image_width" : document.getElementById("imageWidth").value,
+        "alignment" : document.getElementById("alignment").value,
+        "font_size" : document.getElementById("fontSize").value,
+        "font_family" : document.getElementById("fontFamily").value,
+        "font_weight" : document.getElementById("fontWeight").value,
+        "font_color" : document.getElementById("fontColor").value
+    }
+
+    content_in_json.push(the_content);
+
+    addContentInTable(the_content);
+
+    uploaded_image = "";
+    uploaded_image_name = "";
+    uploaded_image_type = "";
+
+    clearContent();
+    
+    }
+    else
+    {
+        
+        if (uploaded_image == "") {
+            temp_image_name = document.getElementById("uploadedImageNameValue").innerHTML;
+            var temp_image = document.getElementById("uploadedImageValue").src;
+            var temp_image_type = document.getElementById("uploadedImageType").innerHTML;
+            uploaded_image_name = temp_image_name;
+            uploaded_image = temp_image;
+            uploaded_image_type = temp_image_type;
+        }
+
+
+        var the_content = {
+        "content_id" : row_index,
+        "element_type" : document.getElementById("elementType").value,
+        "text_content" : document.getElementById("textContent").value,
+        "image_name": uploaded_image_name,
+        "image_base64": uploaded_image,
+        "image_type":uploaded_image_type,
+        "image_height" : document.getElementById("imageHeight").value,
+        "image_width" : document.getElementById("imageWidth").value,
+        "alignment" : document.getElementById("alignment").value,
+        "font_size" : document.getElementById("fontSize").value,
+        "font_family" : document.getElementById("fontFamily").value,
+        "font_weight" : document.getElementById("fontWeight").value,
+        "font_color" : document.getElementById("fontColor").value
+    }
+
+    content_in_json.forEach(function(obj) {
+        if(obj.content_id == row_index){
+            obj.element_type = the_content.element_type;
+            obj.text_content = the_content.text_content;
+            obj.image_name = the_content.image_name;
+            obj.image_base64 = the_content.image_base64;
+            obj.image_height = the_content.image_height;
+            obj.image_width = the_content.image_width;
+            obj.alignment = the_content.alignment;
+            obj.font_size = the_content.font_size;
+            obj.font_family = the_content.font_family;
+            obj.font_weight = the_content.font_family;
+            obj.font_color = the_content.font_color;
+        }
+    });
+
+    var table = document.getElementById("ArticleContentTable");
+    table.deleteRow(the_content.content_id);
+
+    addContentInTable(the_content);
+
+    uploaded_image = "";
+    uploaded_image_name = "";
+    uploaded_image_type = "";
+
+    row_index = 0;
+
+    clearContent();
+
+    }
+
+    saveArticleContent();
+}
+
+function addContentInTable(the_content) {
+    var table = document.getElementById("ArticleContentTable");
+    var row = table.insertRow(the_content.content_id);
+
+    var sl_no = row.insertCell(0);
+    var element_type = row.insertCell(1);
+    var text_content = row.insertCell(2);
+    var image = row.insertCell(3);
+    var image_height = row.insertCell(4);
+    var image_width = row.insertCell(5);
+    var alignment = row.insertCell(6);
+    var font_size = row.insertCell(7);
+    var font_family = row.insertCell(8);
+    var font_weight = row.insertCell(9);
+    var font_color = row.insertCell(10);
+    var action = row.insertCell(11);
+
+    sl_no.innerHTML = the_content.content_id;
+    element_type.innerHTML = the_content.element_type;
+    text_content.innerHTML = the_content.text_content;
+    image.innerHTML = the_content.image_name + "<br><img src='" + the_content.image_base64 + "' height='50' width = '50' alt='image' />";
+    image_height.innerHTML = the_content.image_height;
+    image_width.innerHTML = the_content.image_width;
+    alignment.innerHTML = the_content.alignment;
+    font_size.innerHTML = the_content.font_size;
+    font_family.innerHTML = the_content.font_family;
+    font_weight.innerHTML = the_content.font_weight;
+    font_color.innerHTML = the_content.font_color;
+    action.innerHTML = "<a onclick='editContent(this)'><i class='fa fa-edit' style='font-size:15px;'></i></a>&nbsp;&nbsp;&nbsp;<a onclick='deleteContent(this)'><i class='fa fa-trash' style='font-size:15px;'></i></a>";
+
+    saveArticleContent();
+
+    console.log(content_in_json, "withimagetype");
+}
+
+
+function editContent(the_row) {
+    row_index = the_row.parentNode.parentNode.rowIndex;
+
+    var selected_row = content_in_json[row_index - 1];
+
+    document.getElementById("elementType").value = selected_row.element_type;
+    document.getElementById("textContent").value = selected_row.text_content;
+    document.getElementById("uploadedImageName").innerHTML = `<label id="uploadedImageNameValue" name="`+ selected_row.image_name +`">` + selected_row.image_name + `</label>`;
+    document.getElementById("uploadedImage").innerHTML = '<img id="uploadedImageValue" src=' + selected_row.image_base64 + ' height="50" width="50" alt="image" />';
+    document.getElementById("uploadedImageType").innerHTML = selected_row.image_type;
+    document.getElementById("imageHeight").value = selected_row.image_height;
+    document.getElementById("imageWidth").value = selected_row.image_width;
+    document.getElementById("alignment").value = selected_row.alignment;
+    document.getElementById("fontSize").value = selected_row.font_size;
+    document.getElementById("fontFamily").value = selected_row.font_family;
+    document.getElementById("fontWeight").value = selected_row.font_weight;
+    document.getElementById("fontColor").value = selected_row.font_color;
+
+}
+
+function deleteContent(the_row) {
+    var row_index = the_row.parentNode.parentNode.rowIndex;
+    var table = document.getElementById("ArticleContentTable");
+    var row = table.deleteRow(row_index);
+
+    content_in_json.splice(row_index - 1, 1);
+
+    reIndexContent();
+    saveArticleContent();
+}
+
+function reIndexContent(){
+    var count = 0;
+    content_in_json.forEach(function(obj) {
+        count++;
+        obj.content_id = count;
+        document.getElementById("ArticleContentTable").rows[count].cells[0].innerHTML = count;
+    });
+    count = 0;
+}
+
+function clearContent() {
+
+    document.getElementById("elementType").value = 0;
+    document.getElementById("textContent").value = "";
+    document.getElementById("image").value = "";
+    document.getElementById("uploadedImageName").innerHTML = "";
+    document.getElementById("uploadedImage").innerHTML = "";
+    document.getElementById("imageHeight").value = 0;
+    document.getElementById("imageWidth").value = 0;
+    document.getElementById("imageType").value = "";
+    document.getElementById("alignment").value = 0;
+    document.getElementById("fontSize").value = 0;
+    document.getElementById("fontFamily").value = 0;
+    document.getElementById("fontWeight").value = 0;
+    document.getElementById("fontColor").value = 0;
+
+}
+
+function saveArticleContent()
+{
+    document.getElementById("the_article_content").value = JSON.stringify(content_in_json);
+}
+
+</script>
+}

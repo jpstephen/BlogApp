@@ -1,0 +1,89 @@
+﻿<head>
+    <link href="~/lib/datatables/datatables.min.css" rel="stylesheet" />
+</head>
+
+<div class="container">
+    <div class="table-responsive">
+        <table id="ArticlesTable" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Article Content</th>
+                    <th>Category</th>
+                    <th>Created date</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+
+                   @section Scripts{
+    <script src="~/lib/datatables/datatables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+           $('#ArticlesTable').DataTable(
+               {
+                   ajax: {
+                       url: "ShowArticles/GetAll",
+                       type: "POST",
+                   },
+                   processing: true,
+                   serverSide: true,
+                   filter: true,
+                   columns: [
+                       { 
+                           data: "articleId", 
+                           name: "ArticleId",
+                           render: function (data, type) {
+ 
+                                if (type === 'display') {
+ 
+                                    return '<a onclick="editContent(' + data + ')" id="article_' + data + '" value=' + data + '><i class="fa fa-edit" style="font-size:15px;"></i></a>';
+                                }
+ 
+                                return data;
+                            }
+                       
+                       
+                       },
+                       { 
+                           data: "articleTitle", 
+                           name: "ArticleTitle",
+                           render: function (data, type, row) {
+ 
+                                if (type === 'display') {
+ 
+                                    return "<button class='btn btn-link btn-sm' onclick='openThisPage(" + row.articleId + ")'>" + row.articleTitle + "</button>";
+                                }
+ 
+                                return data;
+                            }
+                       
+                       },
+                       { 
+                           data: "articleContent", 
+                           name: "ArticleContent",
+                           visible: false
+                       },
+                       { data: "articleCategory", name: "ArticleCategory" },
+                       { data: "articleCreatedDate", name: "ArticleCreatedDate" }
+                   ]
+               }
+           );
+       });
+
+       function openThisPage(articleId){
+           console.log(articleId, "articleId");
+            var url = '@Url.Action("Index", "ViewArticle", new { id = "__id__" })';
+            window.location.href = url.replace('__id__', articleId);       }
+
+        function editContent(articleId) {
+            console.log(articleId, "articleId");
+            var url = '@Url.Action("CreateNewArticle", "CreateArticles", new { id = "__id__" })';
+            window.location.href = url.replace('__id__', articleId);
+        }
+
+    </script>
+}

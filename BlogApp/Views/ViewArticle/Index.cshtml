@@ -1,0 +1,60 @@
+﻿@model Article
+
+<h2>@Model.ArticleTitle</h2>
+
+<input type="hidden" id="articleContent" value="@Model.ArticleContent" />
+<input type="hidden" id="articleId" value="@Model.ArticleId" />
+
+
+<div id="thecontent">
+    
+</div>
+
+    @section Scripts{
+                <script>
+
+                $(document).ready(function() {
+                    var articleId = document.getElementById("articleId").value;
+                    makeContent(document.getElementById("articleContent").value);
+                });
+
+                function makeContent(articleContent) {
+                    console.log(articleContent);
+
+                    var content_in_html = "<div id='container'>";
+
+                    var contentobj = JSON.parse(articleContent);
+
+                    contentobj.forEach(function(obj) {
+                        if (obj.element_type == "text") {
+                            content_in_html += "<div id='content_id_" + obj.content_id + "' >";
+                            content_in_html += "<p align='" + obj.alignment + "' style=\"font-size:" + obj.font_size +
+                                "; font-family:" + obj.font_family +
+                                "; color:" + obj.font_color +
+                                "; font-weight:" + obj.font_weight + ";\"" + ">";
+                            content_in_html += obj.text_content;
+                            content_in_html += "</p>";
+                            content_in_html += "</div>";
+                        }
+
+                        else if (obj.element_type == "image") { 
+                            content_in_html += "<div align='" + obj.alignment + "' id='content_id_" + obj.content_id + "' >";
+                            content_in_html += "<img id='"+obj.image_base64+"' width='"+obj.image_width+"' height='"+obj.image_height+"' />"
+                            content_in_html += "</div>";
+                        }
+
+                    });
+
+                    content_in_html += "</div>";
+
+                    document.getElementById("thecontent").innerHTML = content_in_html;
+
+                    contentobj.forEach(function(obj) {
+                        if (obj.element_type == "image") {
+                            document.getElementById(obj.image_base64).src = "../../images/" + obj.image_base64 ;
+                        }
+                    });
+                }
+
+                </script>
+    }
